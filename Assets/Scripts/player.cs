@@ -30,10 +30,6 @@ public class player : MonoBehaviour
             animator.SetBool("isWalking", false);
         }
 
-
-        
         transform.Translate(moveX, 0, MoveZ);
-
-
     }
 }
