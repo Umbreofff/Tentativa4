@@ -136,6 +136,34 @@ public partial class @PlayerInput : IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Firearms"",
+            ""id"": ""a6b3029e-46aa-44e2-ae12-464c871fe8b1"",
+            ""actions"": [
+                {
+                    ""name"": ""Shoot"",
+                    ""type"": ""Button"",
+                    ""id"": ""1d7cefc7-ee25-407c-b1ca-87a57979cec5"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""64abcee6-c34f-4873-b518-226610ab40fd"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Shoot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -144,6 +172,9 @@ public partial class @PlayerInput : IInputActionCollection2, IDisposable
         m_Movement = asset.FindActionMap("Movement", throwIfNotFound: true);
         m_Movement_Walk = m_Movement.FindAction("Walk", throwIfNotFound: true);
         m_Movement_Run = m_Movement.FindAction("Run", throwIfNotFound: true);
+        // Firearms
+        m_Firearms = asset.FindActionMap("Firearms", throwIfNotFound: true);
+        m_Firearms_Shoot = m_Firearms.FindAction("Shoot", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -240,9 +271,46 @@ public partial class @PlayerInput : IInputActionCollection2, IDisposable
         }
     }
     public MovementActions @Movement => new MovementActions(this);
+
+    // Firearms
+    private readonly InputActionMap m_Firearms;
+    private IFirearmsActions m_FirearmsActionsCallbackInterface;
+    private readonly InputAction m_Firearms_Shoot;
+    public struct FirearmsActions
+    {
+        private @PlayerInput m_Wrapper;
+        public FirearmsActions(@PlayerInput wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Shoot => m_Wrapper.m_Firearms_Shoot;
+        public InputActionMap Get() { return m_Wrapper.m_Firearms; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(FirearmsActions set) { return set.Get(); }
+        public void SetCallbacks(IFirearmsActions instance)
+        {
+            if (m_Wrapper.m_FirearmsActionsCallbackInterface != null)
+            {
+                @Shoot.started -= m_Wrapper.m_FirearmsActionsCallbackInterface.OnShoot;
+                @Shoot.performed -= m_Wrapper.m_FirearmsActionsCallbackInterface.OnShoot;
+                @Shoot.canceled -= m_Wrapper.m_FirearmsActionsCallbackInterface.OnShoot;
+            }
+            m_Wrapper.m_FirearmsActionsCallbackInterface = instance;
+            if (instance != null)
+            {
+                @Shoot.started += instance.OnShoot;
+                @Shoot.performed += instance.OnShoot;
+                @Shoot.canceled += instance.OnShoot;
+            }
+        }
+    }
+    public FirearmsActions @Firearms => new FirearmsActions(this);
     public interface IMovementActions
     {
         void OnWalk(InputAction.CallbackContext context);
         void OnRun(InputAction.CallbackContext context);
+    }
+    public interface IFirearmsActions
+    {
+        void OnShoot(InputAction.CallbackContext context);
     }
 }

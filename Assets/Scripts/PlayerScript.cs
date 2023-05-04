@@ -17,8 +17,11 @@ public class PlayerScript : MonoBehaviour
     private Vector3 playerRunMovement;
     private bool isMoving;
     private bool isRunning;
+    private bool fire;
     private float rotationVelocity = 10f;
 
+    [SerializeField] private float gravityValue;
+    [SerializeField] private Gun gun;
     [SerializeField] private float velocity;
     [SerializeField] private float runVelocity;
 
@@ -35,12 +38,21 @@ public class PlayerScript : MonoBehaviour
 
         playerInput.Movement.Run.started += OnRunningInput;
         playerInput.Movement.Run.canceled += OnRunningInput;
+
+        playerInput.Firearms.Shoot.started += ShootingInput;
+        playerInput.Firearms.Shoot.canceled += ShootingInput;
     }
 
     void GetAnimationParameters()
     {
         a_isWalking = Animator.StringToHash("isWalking");
         a_isRunning = Animator.StringToHash("isRunning");
+    }
+
+    void ShootingInput(InputAction.CallbackContext context)
+    {
+        fire = context.ReadValueAsButton();
+        gun.GetComponent<Gun>().Fire();
     }
 
     void OnMovementInput(InputAction.CallbackContext context)
@@ -110,6 +122,8 @@ public class PlayerScript : MonoBehaviour
 
     private void MovePlayer()
     {
+        characterController.Move(Vector3.down * gravityValue * Time.deltaTime);
+
         if (isRunning)
         {
             characterController.Move(playerRunMovement * Time.deltaTime * velocity);
@@ -122,11 +136,13 @@ public class PlayerScript : MonoBehaviour
 
     private void OnEnable()
     {
+        playerInput.Firearms.Enable();
         playerInput.Movement.Enable();
     }
 
     private void OnDisable()
     {
+        playerInput.Firearms.Disable();
         playerInput.Movement.Disable();
     }
 }

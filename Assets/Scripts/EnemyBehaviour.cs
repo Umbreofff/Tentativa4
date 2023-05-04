@@ -14,13 +14,17 @@ public class EnemyBehaviour : MonoBehaviour
     private void Awake()
     {
         enemyNavMesh = GetComponent<NavMeshAgent>();
-        originalPosition = transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
-        float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
+        if (!enemyNavMesh.isStopped /*enemyNavMesh.isStopped == false*/)
+        {
+            enemyNavMesh.SetDestination(playerTransform.position);
+        }
+
+        /*float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
 
         if (distanceToPlayer <= followDistance)
         {
@@ -32,8 +36,20 @@ public class EnemyBehaviour : MonoBehaviour
             if (isFollowingPlayer)
             {
                 enemyNavMesh.ResetPath();
-                isFollowingPlayer = false;
             }
+        }*/
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "Player")
+        {
+            enemyNavMesh.isStopped = false;
         }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        enemyNavMesh.isStopped = true;
     }
 }
